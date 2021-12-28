@@ -6,6 +6,9 @@ on:
       deploy_command:
         required: false
         type: string
+      notify_discord:
+        required: false
+        type: boolean
       require_gcloud:
         required: false
         type: boolean
@@ -70,6 +73,6 @@ jobs:
           restore-keys: ${{ runner.os }}-yarn-
       - run: yarn install
       - run: yarn ${{ inputs.deploy_command || 'deploy' }}
-      - if: ${{ secrets.server_url && secrets.discord_webhook_url }}
+      - if: ${{ inputs.notify_discord }}
         run: |
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n本番環境 (${{ inputs.server_url }}) が更新されました。 !!!!!\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/$(git describe --always --tags)\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\"}" ${{ secrets.discord_webhook_url }}
