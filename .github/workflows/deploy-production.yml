@@ -6,6 +6,9 @@ on:
       deploy_command:
         required: false
         type: string
+      require_gcloud:
+        required: false
+        type: boolean
       server_url:
         required: false
         type: string
@@ -52,9 +55,9 @@ jobs:
         run: |
           echo "node: $(node -v)"
           echo "yarn: $(yarn -v)"
-      - if: ${{ secrets.gcp_sa_key_json }}
+      - if: ${{ secrets.require_gcloud }}
         run: asdf install python $PYTHON_VERSION; asdf install gcloud $GCLOUD_VERSION;
-      - if: ${{ secrets.gcp_sa_key_json }}
+      - if: ${{ secrets.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.gcp_sa_key_json }}
