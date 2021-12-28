@@ -16,12 +16,57 @@ on:
         required: false
 
 jobs:
-  deploy:
-    uses: WillBooster/reusable-workflows/.github/workflows/deploy-common.yml@main
-    with:
-      deploy_command: ${{ inputs.deploy_command }}
-      environment: staging
-      server_url: ${{ inputs.server_url }}
-    secrets:
-      discord_webhook_url: ${{ secrets.discord_webhook_url }}
-      gcp_sa_key_json: ${{ secrets.gcp_sa_key_json }}
+  pre:
+    if: ${{ github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]' }}
+    runs-on: [self-hosted, large]
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: false
+          skip_after_successful_duplicate: true
+          concurrent_skipping: same_content_newer
+          paths_ignore: '["**/*.md", "**/docs/**"]'
+  deploy-staging: # deploy should not be cancelable
+    needs: pre
+    if: ${{ needs.pre.outputs.should_skip != 'true' }}
+    runs-on: [self-hosted, large]
+    env:
+      ENVIRONMENT: staging
+      PYTHON_VERSION: 3.9.9
+      GCLOUD_VERSION: 366.0.0
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: false
+          skip_after_successful_duplicate: true
+          concurrent_skipping: same_content_newer
+          paths_ignore: '["**/*.md", "**/docs/**"]'
+      - uses: actions/checkout@v2
+      - uses: willbooster/asdf-actions/install@main
+      - name: Show environment information
+        run: |
+          echo "node: $(node -v)"
+          echo "yarn: $(yarn -v)"
+      - if: ${{ secrets.gcp_sa_key_json }}
+        run: asdf install python $PYTHON_VERSION; asdf install gcloud $GCLOUD_VERSION;
+      - if: ${{ secrets.gcp_sa_key_json }}
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.gcp_sa_key_json }}
+      - name: Configure docker to use gcloud
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+      - uses: actions/cache@v2
+        with:
+          path: .yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+      - run: yarn install
+      - run: yarn ${{ inputs.deploy_command || 'deploy' }}
+      - if: ${{ secrets.server_url && secrets.discord_webhook_url }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{\"content\":\"ステージング環境 (${{ inputs.server_url }}) が更新されました。\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/`git describe --always --tags`\"}" ${{ secrets.discord_webhook_url }}
