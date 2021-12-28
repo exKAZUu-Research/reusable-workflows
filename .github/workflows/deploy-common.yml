@@ -54,6 +54,8 @@ jobs:
           echo "node: $(node -v)"
           echo "yarn: $(yarn -v)"
       - if: ${{ secrets.gcp_sa_key_json }}
+        run: asdf install python 3.9.9; asdf install gcloud 366.0.0;
+      - if: ${{ secrets.gcp_sa_key_json }}
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.gcp_sa_key_json }}
