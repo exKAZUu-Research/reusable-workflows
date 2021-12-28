@@ -1,4 +1,4 @@
-name: Deploy app on staging
+name: Deploy app on production
 
 on:
   workflow_call:
@@ -20,7 +20,7 @@ jobs:
     uses: ./.github/workflows/deploy-common.yml@main
     with:
       deploy_command: ${{ inputs.deploy_command }}
-      environment: staging
+      environment: production
       server_url: ${{ inputs.server_url }}
     secrets:
       discord_webhook_url: ${{ secrets.discord_webhook_url }}
