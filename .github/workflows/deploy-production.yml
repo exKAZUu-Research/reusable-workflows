@@ -17,7 +17,7 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/deploy-common.yml@main
+    uses: WillBooster/reusable-workflows/.github/workflows/deploy-common.yml@main
     with:
       deploy_command: ${{ inputs.deploy_command }}
       environment: production
