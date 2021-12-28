@@ -1,0 +1,24 @@
+{
+  "name": "reusable-workflows",
+  "license": "UNLICENSED",
+  "scripts": {
+    "cleanup": "yarn format",
+    "format": "sort-package-json && yarn prettify",
+    "postinstall": "husky install",
+    "prepare": "husky install",
+    "prepublishOnly": "pinst --disable",
+    "prettify": "prettier --color --write \"**/{.*/,}*.{cjs,css,htm,html,js,json,json5,jsx,md,mjs,scss,ts,tsx,vue,yaml,yml}\" \"!**/test-fixtures/**\"",
+    "postpublish": "pinst --enable"
+  },
+  "prettier": "@willbooster/prettier-config",
+  "devDependencies": {
+    "@willbooster/prettier-config": "6.5.0",
+    "@willbooster/renovate-config": "6.5.0",
+    "husky": "7.0.4",
+    "lint-staged": "12.1.4",
+    "pinst": "2.1.6",
+    "prettier": "2.5.1",
+    "sort-package-json": "1.53.1"
+  },
+  "packageManager": "yarn@3.1.1"
+}

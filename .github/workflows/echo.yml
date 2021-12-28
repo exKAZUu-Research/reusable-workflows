@@ -14,4 +14,3 @@ jobs:
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main
       - run: echo ${{ inputs.text }}
-
