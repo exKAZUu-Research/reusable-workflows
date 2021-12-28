@@ -8,9 +8,10 @@ on:
         type: string
 
 jobs:
-  train:
+  echo:
     runs-on: [self-hosted, large]
     steps:
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main
       - run: echo ${{ inputs.text }}
+

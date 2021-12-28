@@ -1,0 +1,60 @@
+name: Deploy app on staging
+
+on:
+  workflow_call:
+    inputs:
+      server_url:
+        required: true
+        type: string
+    secrets:
+      discord_webhook_url:
+        required: true
+      gcp_sa_key_json:
+        required: true
+
+jobs:
+  pre:
+    if: ${{ github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]' }}
+    runs-on: [self-hosted, large]
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: false
+          skip_after_successful_duplicate: true
+          concurrent_skipping: same_content_newer
+          paths_ignore: '["**/*.md", "**/docs/**"]'
+  deploy-staging: # deploy should not be cancelable
+    needs: pre
+    if: ${{ needs.pre.outputs.should_skip != 'true' }}
+    runs-on: [self-hosted, large]
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: false
+          skip_after_successful_duplicate: true
+          concurrent_skipping: same_content_newer
+          paths_ignore: '["**/*.md", "**/docs/**"]'
+      - uses: actions/checkout@v2
+      - uses: willbooster/asdf-actions/install@main
+      - name: Show environment information
+        run: |
+          echo "node: $(node -v)"
+          echo "yarn: $(yarn -v)"
+      - uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.gcp_sa_key_json }}
+      - name: Configure docker to use gcloud
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+      - uses: actions/cache@v2
+        with:
+          path: .yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+      - run: yarn install
+      - run: yarn deploy-stg
+      - run: |
+          curl -X POST -H 'Content-type: application/json' --data "{\"content\":\"ステージング環境 (${{ inputs.server_url }}) が更新されました。\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/`git describe --always --tags`\"}" ${{ secrets.discord_webhook_url }}
