@@ -45,9 +45,12 @@ jobs:
     if: ${{ needs.pre.outputs.should_skip != 'true' }}
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     env:
-      ENVIRONMENT: ${{ inputs.environment }}
+      # constants
       PYTHON_VERSION: 3.9.9
       GCLOUD_VERSION: 366.0.0
+      # arguments
+      ENVIRONMENT: ${{ inputs.environment }}
+      # global variables
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     steps:
       - uses: fkirc/skip-duplicate-actions@master
