@@ -12,7 +12,7 @@ on:
 
 jobs:
   echo:
-    runs-on: ${{ (non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
+    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
     steps:
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main

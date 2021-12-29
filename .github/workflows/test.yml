@@ -9,7 +9,7 @@ on:
 
 jobs:
   pre:
-    runs-on: ${{ (non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
+    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
