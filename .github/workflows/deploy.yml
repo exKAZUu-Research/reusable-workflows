@@ -30,7 +30,7 @@ on:
 jobs:
   pre:
     if: ${{ github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]' }}
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
+    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -43,7 +43,7 @@ jobs:
   deploy:
     needs: pre
     if: ${{ needs.pre.outputs.should_skip != 'true' }}
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
+    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     env:
       ENVIRONMENT: ${{ inputs.environment }}
       PYTHON_VERSION: 3.9.9

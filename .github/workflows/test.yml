@@ -23,7 +23,7 @@ jobs:
   test:
     needs: pre
     if: ${{ needs.pre.outputs.should_skip != 'true' }}
-    runs-on: [self-hosted, large]
+    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
