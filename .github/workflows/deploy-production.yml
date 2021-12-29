@@ -60,10 +60,14 @@ jobs:
           echo "yarn: $(yarn -v)"
       - if: ${{ inputs.require_gcloud }}
         run: |
-          asdf install python $PYTHON_VERSION
-          asdf local python $PYTHON_VERSION
-          asdf install gcloud $GCLOUD_VERSION
-          asdf local gcloud $GCLOUD_VERSION
+          if ! [[ -f .tool-versions ]] && ! [[ "$(cat .tool-versions)" == *"python"* ]]; then
+            asdf install python $PYTHON_VERSION
+            asdf local python $PYTHON_VERSION
+          fi
+          if ! [[ -f .tool-versions ]] && ! [[ "$(cat .tool-versions)" == *"gcloud"* ]]; then
+            asdf install gcloud $GCLOUD_VERSION
+            asdf local gcloud $GCLOUD_VERSION
+          fi
       - if: ${{ inputs.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
