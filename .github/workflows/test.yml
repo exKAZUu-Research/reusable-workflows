@@ -52,7 +52,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
       - run: yarn install
-      - run: if [[ "$(cat package.json)" == *'"typecheck":'* ]]; then yarn test; fi
-      - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn test; fi
+      - run: if [[ "$(cat package.json)" == *'"typecheck":'* ]]; then yarn typecheck; fi
+      - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn lint; fi
       - run: if [[ "$(cat package.json)" == *'"test":'* ]]; then yarn test; fi
-      - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn test; fi
+      - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn build; fi
