@@ -2,10 +2,14 @@ name: Test
 
 on:
   workflow_call:
+    inputs:
+      non_self_hosted:
+        required: false
+        type: boolean
 
 jobs:
   pre:
-    runs-on: [self-hosted, large]
+    runs-on: ${{ (non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:

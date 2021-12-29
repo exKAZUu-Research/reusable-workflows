@@ -3,13 +3,16 @@ name: Show a given text
 on:
   workflow_call:
     inputs:
+      non_self_hosted:
+        required: false
+        type: boolean
       text:
         required: true
         type: string
 
 jobs:
   echo:
-    runs-on: [self-hosted, large]
+    runs-on: ${{ (non_self_hosted && 'ubuntu-latest') || ['self-hosted', 'large'] }}
     steps:
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main
