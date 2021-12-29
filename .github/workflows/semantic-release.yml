@@ -6,6 +6,9 @@ on:
       non_self_hosted:
         required: false
         type: boolean
+    secrets:
+      github_token:
+        required: true
 
 jobs:
   release:
@@ -38,5 +41,5 @@ jobs:
       - run: yarn install
       - name: Release
         run: yarn semantic-release
-        env: # GITHUB_TOKEN cannot be used because a personal token is required for release (published) event
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env: # existing GITHUB_TOKEN cannot fire release (published) event, so we need a personal token
+          GITHUB_TOKEN: ${{ secrets.github_token }}

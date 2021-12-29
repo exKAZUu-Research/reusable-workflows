@@ -24,6 +24,8 @@ on:
     secrets:
       discord_webhook_url:
         required: false
+      firebase_token:
+        required: false
       gcp_sa_key_json:
         required: false
 
@@ -46,22 +48,17 @@ jobs:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     env:
       # constants
-      PYTHON_VERSION: 3.9.9
       GCLOUD_VERSION: 366.0.0
+      PYTHON_VERSION: 3.9.9
       # arguments
       ENVIRONMENT: ${{ inputs.environment }}
-      # global variables
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FIREBASE_TOKEN: ${{ secrets.firebase_token }}
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
           cancel_others: true
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main
-      - name: Show environment information
-        run: |
-          echo "node: $(node -v)"
-          echo "yarn: $(yarn -v)"
       - if: ${{ inputs.require_gcloud }}
         run: |
           if ! [[ -f .tool-versions ]] || ! [[ "$(cat .tool-versions)" == *"python"* ]]; then
@@ -72,17 +69,35 @@ jobs:
             asdf install gcloud $GCLOUD_VERSION
             asdf local gcloud $GCLOUD_VERSION
           fi
+      - name: Show environment information
+        run: |
+          echo "node: $(node -v)"
+          echo "yarn: $(yarn -v)"
+          if command -v python &> /dev/null; then echo "python: $(python --version)"; fi
+          if command -v poetry &> /dev/null; then echo "poetry: $(poetry -v)"; fi
+          if command -v gcloud &> /dev/null; then echo "gcloud: $(gcloud -v 2>&1 | head -n 1)"; fi
+          if [[ "$(yarn -v)" == "1."* ]]; then
+            echo "::set-output name=yarn-dir::$(yarn cache dir)"
+          fi
+      - if: ${{ steps.env-info.outputs.yarn-dir }}
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.env-info.outputs.yarn-dir }}
+          key: ${{ runner.os }}-yarn-v1-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-v1-
+      - uses: actions/cache@v2
+        with:
+          path: .yarn
+          key: ${{ runner.os }}-yarn-berry-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-berry-
       - if: ${{ inputs.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.gcp_sa_key_json }}
       - name: Configure docker to use gcloud
         run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
-      - uses: actions/cache@v2
-        with:
-          path: .yarn
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: ${{ runner.os }}-yarn-
       - run: yarn install
       - run: yarn ${{ inputs.deploy_command || 'deploy' }}
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
