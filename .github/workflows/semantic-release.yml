@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  workflow_call:
+
+jobs:
+  release:
+    if: ${{ github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]' }}
+    runs-on: [self-hosted, large]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: willbooster/asdf-actions/install@main
+      - name: Show environment information
+        id: env-info
+        run: |
+          echo "node: $(node -v)"
+          echo "yarn: $(yarn -v)"
+          if [[ "$(yarn -v)" == "1."* ]]; then
+            echo "::set-output name=yarn-dir::$(yarn cache dir)"
+          fi
+      - if: ${{ steps.env-info.outputs.yarn-dir }}
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.env-info.outputs.yarn-dir }}
+          key: ${{ runner.os }}-yarn-v1-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-v1-
+      - uses: actions/cache@v2
+        with:
+          path: .yarn
+          key: ${{ runner.os }}-yarn-berry-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-berry-
+      - run: yarn install
+      - name: Release
+        run: yarn semantic-release
+        env: # GITHUB_TOKEN cannot be used because a personal token is required for release (published) event
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

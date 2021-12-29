@@ -1,0 +1,54 @@
+name: Test
+
+on:
+  workflow_call:
+
+jobs:
+  pre:
+    runs-on: [self-hosted, large]
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: false
+          skip_after_successful_duplicate: true
+          concurrent_skipping: same_content_newer
+          paths_ignore: '["**/*.md", "**/docs/**"]'
+  test:
+    needs: pre
+    if: ${{ needs.pre.outputs.should_skip != 'true' }}
+    runs-on: [self-hosted, large]
+    steps:
+      - uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: true
+      - uses: actions/checkout@v2
+      - uses: willbooster/asdf-actions/install@main
+      - name: Show environment information
+        id: env-info
+        run: |
+          echo "node: $(node -v)"
+          echo "yarn: $(yarn -v)"
+          if [[ "$(yarn -v)" == "1."* ]]; then
+            echo "::set-output name=yarn-dir::$(yarn cache dir)"
+          fi
+      - if: ${{ steps.env-info.outputs.yarn-dir }}
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.env-info.outputs.yarn-dir }}
+          key: ${{ runner.os }}-yarn-v1-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-v1-
+      - uses: actions/cache@v2
+        with:
+          path: .yarn
+          key: ${{ runner.os }}-yarn-berry-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-berry-
+      - run: yarn install
+      - run: if [[ "$(cat package.json)" == *'"typecheck":'* ]]; then yarn test; fi
+      - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn test; fi
+      - run: if [[ "$(cat package.json)" == *'"test":'* ]]; then yarn test; fi
+      - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn test; fi
