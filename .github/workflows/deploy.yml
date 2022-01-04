@@ -106,3 +106,4 @@ jobs:
       - if: ${{ inputs.notify_discord && inputs.environment == 'production' }}
         run: |
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n本番環境 (${{ inputs.server_url }}) が更新されました。 !!!!!\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/$(git describe --always --tags)\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\"}" ${{ secrets.discord_webhook_url }}
+      - run: docker system prune -a -f --filter "until=24h"
