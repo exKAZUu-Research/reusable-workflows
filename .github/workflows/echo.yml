@@ -9,11 +9,18 @@ on:
       text:
         required: true
         type: string
+    outputs:
+      version:
+        value: ${{ jobs.echo.outputs.text }}
 
 jobs:
   echo:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    outputs:
+      version: ${{ steps.echo.outputs.text }}
     steps:
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main
-      - run: echo ${{ inputs.text }}
+      - id: echo
+        run: |
+          echo "::set-output name=text::${{ inputs.text }}"

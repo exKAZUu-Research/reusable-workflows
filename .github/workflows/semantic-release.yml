@@ -61,6 +61,6 @@ jobs:
       - id: release
         run: |
           yarn semantic-release
-          echo "::set-output version=$(cat .VERSION || echo '')"
+          echo "::set-output name=version::$(cat .VERSION || echo '')"
         env: # existing GITHUB_TOKEN cannot fire release (published) event, so we need a personal token
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
