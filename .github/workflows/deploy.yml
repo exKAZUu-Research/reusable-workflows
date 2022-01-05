@@ -64,7 +64,6 @@ jobs:
       # constants
       GCLOUD_VERSION: 366.0.0
       PYTHON_VERSION: 3.9.9
-      FLYCTL_INSTALL: ~/.fly
       # arguments
       ENVIRONMENT: ${{ inputs.environment }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -115,7 +114,7 @@ jobs:
             ${{ runner.os }}-yarn-berry-
 
       - if: ${{ inputs.require_fly }}
-        run: curl -L https://fly.io/install.sh | sh
+        run: curl -L https://fly.io/install.sh | FLYCTL_INSTALL=$HOME/.fly sh
       - if: ${{ inputs.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
@@ -125,7 +124,7 @@ jobs:
       - run: yarn install
 
       - run: if [[ "$(cat package.json)" == *'"deploy-setup":'* ]]; then yarn deploy-setup; fi
-      - run: PATH="$FLYCTL_INSTALL/bin:$PATH" yarn ${{ inputs.deploy_command || 'deploy' }}
+      - run: PATH="$HOME/.fly/bin:$PATH" yarn ${{ inputs.deploy_command || 'deploy' }}
 
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
         run: |
