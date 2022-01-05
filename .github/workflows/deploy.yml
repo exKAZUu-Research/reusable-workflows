@@ -6,6 +6,9 @@ on:
       deploy_command:
         required: false
         type: string
+      dot_env_path:
+        required: false
+        type: string
       environment:
         required: true
         type: string
@@ -23,6 +26,8 @@ on:
         type: string
     secrets:
       discord_webhook_url:
+        required: false
+      dot_env:
         required: false
       firebase_token:
         required: false
@@ -79,6 +84,8 @@ jobs:
           if [[ "$(yarn -v)" == "1."* ]]; then
             echo "::set-output name=yarn-dir::$(yarn cache dir)"
           fi
+      - if: ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
       - if: ${{ steps.env-info.outputs.yarn-dir }}
         uses: actions/cache@v2
         with:

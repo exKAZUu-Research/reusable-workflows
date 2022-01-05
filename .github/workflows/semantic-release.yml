@@ -3,10 +3,15 @@ name: Release
 on:
   workflow_call:
     inputs:
+      dot_env_path:
+        required: false
+        type: string
       non_self_hosted:
         required: false
         type: boolean
     secrets:
+      dot_env:
+        required: false
       github_token:
         required: true
 
@@ -25,6 +30,8 @@ jobs:
           if [[ "$(yarn -v)" == "1."* ]]; then
             echo "::set-output name=yarn-dir::$(yarn cache dir)"
           fi
+      - if: ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
       - if: ${{ steps.env-info.outputs.yarn-dir }}
         uses: actions/cache@v2
         with:
