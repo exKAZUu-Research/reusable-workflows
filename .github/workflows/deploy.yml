@@ -6,9 +6,9 @@ on:
       deploy_command:
         required: false
         type: string
-      deploy_to_fly:
+      fly_args:
         required: false
-        type: boolean
+        type: string
       dot_env_path:
         required: false
         type: string
@@ -122,12 +122,12 @@ jobs:
       - run: yarn install
 
       - run: if [[ "$(cat package.json)" == *'"deploy-setup":'* ]]; then yarn deploy-setup; fi
-      - if: ${{ !inputs.deploy_to_fly }}
+      - if: ${{ !inputs.fly_args }}
         run: yarn ${{ inputs.deploy_command || 'deploy' }}
-      - if: ${{ inputs.deploy_to_fly }}
+      - if: ${{ inputs.fly_args }}
         uses: superfly/flyctl-actions@1.1
         with:
-          args: 'deploy'
+          args: ${{ inputs.fly_args }}
 
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
         run: |
