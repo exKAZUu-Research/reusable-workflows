@@ -17,16 +17,11 @@ on:
         required: false
       GH_TOKEN:
         required: true
-    outputs:
-      version:
-        value: ${{ jobs.release.outputs.version }}
 
 jobs:
   release:
     if: ${{ !inputs.ignore_renovate || (github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]') }}
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
-    outputs:
-      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: actions/checkout@v2
       - if: ${{ inputs.dot_env_path }}
@@ -58,9 +53,6 @@ jobs:
             ${{ runner.os }}-yarn-berry-
 
       - run: yarn install
-      - id: release
-        run: |
-          yarn semantic-release
-          echo "::set-output name=version::$(cat .VERSION || echo '')"
+      - run: yarn semantic-release
         env: # existing GITHUB_TOKEN cannot fire release (published) event, so we need a personal token
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
