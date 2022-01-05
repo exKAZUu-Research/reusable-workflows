@@ -121,12 +121,13 @@ jobs:
         run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
       - run: yarn install
 
+      - run: if [[ "$(cat package.json)" == *'"deploy-setup":'* ]]; then yarn deploy-setup; fi
+      - if: ${{ !inputs.deploy_to_fly }}
+        run: yarn ${{ inputs.deploy_command || 'deploy' }}
       - if: ${{ inputs.deploy_to_fly }}
         uses: superfly/flyctl-actions@1.1
         with:
           args: 'deploy'
-      - if: ${{ !inputs.deploy_to_fly }}
-        run: yarn ${{ inputs.deploy_command || 'deploy' }}
 
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
         run: |
