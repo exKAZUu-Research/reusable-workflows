@@ -6,9 +6,6 @@ on:
       deploy_command:
         required: false
         type: string
-      fly_args:
-        required: false
-        type: string
       dot_env_path:
         required: false
         type: string
@@ -22,6 +19,9 @@ on:
         required: false
         type: boolean
       notify_discord:
+        required: false
+        type: boolean
+      require_fly:
         required: false
         type: boolean
       require_gcloud:
@@ -64,6 +64,7 @@ jobs:
       # constants
       GCLOUD_VERSION: 366.0.0
       PYTHON_VERSION: 3.9.9
+      FLYCTL_INSTALL: ~/.fly
       # arguments
       ENVIRONMENT: ${{ inputs.environment }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -113,6 +114,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
 
+      - if: ${{ inputs.require_fly }}
+        run: curl -L https://fly.io/install.sh | sh
       - if: ${{ inputs.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
@@ -122,12 +125,7 @@ jobs:
       - run: yarn install
 
       - run: if [[ "$(cat package.json)" == *'"deploy-setup":'* ]]; then yarn deploy-setup; fi
-      - if: ${{ !inputs.fly_args }}
-        run: yarn ${{ inputs.deploy_command || 'deploy' }}
-      - if: ${{ inputs.fly_args }}
-        uses: superfly/flyctl-actions@1.1
-        with:
-          args: ${{ inputs.fly_args }}
+      - run: PATH="$FLYCTL_INSTALL/bin:$PATH" yarn ${{ inputs.deploy_command || 'deploy' }}
 
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
         run: |
