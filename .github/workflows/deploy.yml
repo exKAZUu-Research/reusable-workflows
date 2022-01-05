@@ -28,15 +28,15 @@ on:
         required: false
         type: string
     secrets:
-      discord_webhook_url:
+      DISCORD_WEBHOOK_URL:
         required: false
-      dot_env:
+      DOT_ENV:
         required: false
-      firebase_token:
+      FIREBASE_TOKEN:
         required: false
-      fly_api_token:
+      FLY_API_TOKEN:
         required: false
-      gcp_sa_key_json:
+      GCP_SA_KEY_JSON:
         required: false
 
 jobs:
@@ -63,15 +63,15 @@ jobs:
       PYTHON_VERSION: 3.9.9
       # arguments
       ENVIRONMENT: ${{ inputs.environment }}
-      FIREBASE_TOKEN: ${{ secrets.firebase_token }}
-      FLY_API_TOKEN: ${{ secrets.fly_api_token }}
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
           cancel_others: true
       - uses: actions/checkout@v2
       - if: ${{ inputs.dot_env_path }}
-        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.DOT_ENV }}" > ${{ inputs.dot_env_path }}
 
       - uses: willbooster/asdf-actions/install@main
       - if: ${{ inputs.require_gcloud }}
@@ -112,7 +112,7 @@ jobs:
       - if: ${{ inputs.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: ${{ secrets.gcp_sa_key_json }}
+          credentials_json: ${{ secrets.GCP_SA_KEY_JSON }}
       - name: Configure docker to use gcloud
         run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
       - run: yarn install
@@ -126,9 +126,9 @@ jobs:
 
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data "{\"content\":\"ステージング環境 (${{ inputs.server_url }}) が更新されました。\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/`git describe --always --tags`\"}" ${{ secrets.discord_webhook_url }}
+          curl -X POST -H 'Content-type: application/json' --data "{\"content\":\"ステージング環境 (${{ inputs.server_url }}) が更新されました。\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/`git describe --always --tags`\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
       - if: ${{ inputs.notify_discord && inputs.environment == 'production' }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n本番環境 (${{ inputs.server_url }}) が更新されました。 !!!!!\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/$(git describe --always --tags)\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\"}" ${{ secrets.discord_webhook_url }}
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n本番環境 (${{ inputs.server_url }}) が更新されました。 !!!!!\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/$(git describe --always --tags)\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - run: docker system prune -a -f --filter "until=24h"

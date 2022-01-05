@@ -10,7 +10,7 @@ on:
         required: false
         type: boolean
     secrets:
-      dot_env:
+      DOT_ENV:
         required: false
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
           cancel_others: true
       - uses: actions/checkout@v2
       - if: ${{ inputs.dot_env_path }}
-        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.DOT_ENV }}" > ${{ inputs.dot_env_path }}
 
       - uses: willbooster/asdf-actions/install@main
       - name: Show environment information
