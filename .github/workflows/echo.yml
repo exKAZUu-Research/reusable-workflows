@@ -10,14 +10,14 @@ on:
         required: true
         type: string
     outputs:
-      version:
+      text:
         value: ${{ jobs.echo.outputs.text }}
 
 jobs:
   echo:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     outputs:
-      version: ${{ steps.echo.outputs.text }}
+      text: ${{ steps.echo.outputs.text }}
     steps:
       - uses: actions/checkout@v2
       - uses: willbooster/asdf-actions/install@main
