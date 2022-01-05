@@ -35,6 +35,9 @@ jobs:
         with:
           cancel_others: true
       - uses: actions/checkout@v2
+      - if: ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+
       - uses: willbooster/asdf-actions/install@main
       - name: Show environment information
         id: env-info
@@ -48,8 +51,7 @@ jobs:
           if [[ "$(yarn -v)" == "1."* ]]; then
             echo "::set-output name=yarn-dir::$(yarn cache dir)"
           fi
-      - if: ${{ inputs.dot_env_path }}
-        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+
       - if: ${{ steps.env-info.outputs.yarn-dir }}
         uses: actions/cache@v2
         with:
@@ -75,6 +77,7 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('packages/recommender/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
+
       - run: yarn install
       - run: if [[ "$(cat package.json)" == *'"setup":'* ]]; then yarn setup; fi
       - run: if [[ "$(cat package.json)" == *'"typecheck":'* ]]; then yarn typecheck; fi

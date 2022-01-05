@@ -6,6 +6,9 @@ on:
       deploy_command:
         required: false
         type: string
+      deploy_to_fly:
+        required: false
+        type: boolean
       dot_env_path:
         required: false
         type: string
@@ -30,6 +33,8 @@ on:
       dot_env:
         required: false
       firebase_token:
+        required: false
+      fly_api_token:
         required: false
       gcp_sa_key_json:
         required: false
@@ -59,11 +64,15 @@ jobs:
       # arguments
       ENVIRONMENT: ${{ inputs.environment }}
       FIREBASE_TOKEN: ${{ secrets.firebase_token }}
+      FLY_API_TOKEN: ${{ secrets.fly_api_token }}
     steps:
       - uses: fkirc/skip-duplicate-actions@master
         with:
           cancel_others: true
       - uses: actions/checkout@v2
+      - if: ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+
       - uses: willbooster/asdf-actions/install@main
       - if: ${{ inputs.require_gcloud }}
         run: |
@@ -85,8 +94,7 @@ jobs:
           if [[ "$(yarn -v)" == "1."* ]]; then
             echo "::set-output name=yarn-dir::$(yarn cache dir)"
           fi
-      - if: ${{ inputs.dot_env_path }}
-        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+
       - if: ${{ steps.env-info.outputs.yarn-dir }}
         uses: actions/cache@v2
         with:
@@ -100,6 +108,7 @@ jobs:
           key: ${{ runner.os }}-yarn-berry-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
+
       - if: ${{ inputs.require_gcloud }}
         uses: google-github-actions/auth@v0
         with:
@@ -107,11 +116,19 @@ jobs:
       - name: Configure docker to use gcloud
         run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
       - run: yarn install
-      - run: yarn ${{ inputs.deploy_command || 'deploy' }}
+
+      - if: ${{ deploy_to_fly }}
+        uses: superfly/flyctl-actions@1.1
+        with:
+          args: 'deploy'
+      - if: ${{ !deploy_to_fly }}
+        run: yarn ${{ inputs.deploy_command || 'deploy' }}
+
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
         run: |
           curl -X POST -H 'Content-type: application/json' --data "{\"content\":\"ステージング環境 (${{ inputs.server_url }}) が更新されました。\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/`git describe --always --tags`\"}" ${{ secrets.discord_webhook_url }}
       - if: ${{ inputs.notify_discord && inputs.environment == 'production' }}
         run: |
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n本番環境 (${{ inputs.server_url }}) が更新されました。 !!!!!\n更新時に含まれるコミット一覧: https://github.com/${{ github.repository }}/commits/$(git describe --always --tags)\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\"}" ${{ secrets.discord_webhook_url }}
+
       - run: docker system prune -a -f --filter "until=24h"

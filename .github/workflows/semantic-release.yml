@@ -21,6 +21,9 @@ jobs:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     steps:
       - uses: actions/checkout@v2
+      - if: ${{ inputs.dot_env_path }}
+        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+
       - uses: willbooster/asdf-actions/install@main
       - name: Show environment information
         id: env-info
@@ -30,8 +33,7 @@ jobs:
           if [[ "$(yarn -v)" == "1."* ]]; then
             echo "::set-output name=yarn-dir::$(yarn cache dir)"
           fi
-      - if: ${{ inputs.dot_env_path }}
-        run: echo "${{ secrets.dot_env }}" > ${{ inputs.dot_env_path }}
+
       - if: ${{ steps.env-info.outputs.yarn-dir }}
         uses: actions/cache@v2
         with:
@@ -45,6 +47,7 @@ jobs:
           key: ${{ runner.os }}-yarn-berry-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
+
       - run: yarn install
       - name: Release
         run: yarn semantic-release
