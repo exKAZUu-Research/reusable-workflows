@@ -17,6 +17,8 @@ on:
         required: false
       GH_TOKEN:
         required: true
+    outputs:
+      version: ${{ steps.release.outputs.version }}
 
 jobs:
   release:
@@ -30,6 +32,7 @@ jobs:
       - uses: willbooster/asdf-actions/install@main
       - name: Show environment information
         id: env-info
+        # https://stackoverflow.com/a/677212
         run: |
           echo "node: $(node -v)"
           echo "yarn: $(yarn -v)"
@@ -52,7 +55,9 @@ jobs:
             ${{ runner.os }}-yarn-berry-
 
       - run: yarn install
-      - name: Release
-        run: yarn semantic-release
+      - id: release
+        run: |
+          yarn semantic-release
+          echo "::set-output version=$(cat .VERSION || echo '')"
         env: # existing GITHUB_TOKEN cannot fire release (published) event, so we need a personal token
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
