@@ -47,6 +47,7 @@ jobs:
           cancel_others: false
           skip_after_successful_duplicate: true
           concurrent_skipping: same_content_newer
+          paths_ignore: '["*.md"]'
   deploy:
     needs: pre
     if: ${{ needs.pre.outputs.should_skip != 'true' }}
