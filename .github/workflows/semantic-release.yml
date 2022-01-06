@@ -54,5 +54,8 @@ jobs:
 
       - run: yarn install
       - run: yarn semantic-release
-        env: # existing GITHUB_TOKEN cannot fire release (published) event, so we need a personal token
+        # Existing GITHUB_TOKEN cannot trigger release (published) event
+        # We need to pass a personal token (e.g. secrets.GH_BOT_PAT) to secrets.GH_TOKEN
+        # c.f. https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#triggering-new-workflows-using-a-personal-access-token
+        env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
