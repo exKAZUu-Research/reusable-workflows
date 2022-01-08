@@ -17,6 +17,8 @@ on:
         required: false
       GH_TOKEN:
         required: true
+      NPM_TOKEN:
+        required: false
 
 jobs:
   release:
@@ -59,3 +61,4 @@ jobs:
         # c.f. https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#triggering-new-workflows-using-a-personal-access-token
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
