@@ -12,35 +12,13 @@ jobs:
     uses: WillBooster/reusable-workflows/.github/workflows/test.yml@node-version
     with:
       non_self_hosted: true
-  detect-node-version-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      json: ${{ steps.detect-node-version-matrix.outputs.json }}
-    steps:
-      - uses: actions/checkout@v2
-      - id: detect-node-version-matrix
-        run: |
-          NODE_VERSIONS=""
-          if [[ ! -f .tool-versions ]]; then
-            CONSTRAINT=$(node -e "console.log(((require('./package.json') || {}).engines || {}).node)")
-            NODE_VERSIONS=$(npx -y semver -r "$CONSTRAINT" 12.0.0 14.0.0 16.0.0 | xargs | sed 's/ /","/g' | sed 's/\.0\.0//g')
-            if [[ -z "$NODE_VERSIONS" ]]; then
-              NODE_VERSIONS="$(cat .node-version || echo 16)"
-            fi
-          fi
-          echo "::set-output name=json::[\"$NODE_VERSIONS\"]"
   debug:
     runs-on: ubuntu-latest
-    needs: detect-node-version-matrix
-    strategy:
-      matrix:
-        node-version: ${{ fromJson(needs.detect-node-version-matrix.outputs.json) }}
     steps:
       - uses: actions/checkout@v2
       - name: Show environment information
         id: env-info
         run: |
-          echo "${{ matrix.node-version }}"
           echo "node: $(node -v)"
           echo "yarn: $(yarn -v)"
           if command -v python &> /dev/null; then echo "python: $(python --version)"; fi
@@ -58,16 +36,3 @@ jobs:
         run: |
           echo ${PATH}
           echo ${VERSION}
-
-      - if: ${{ matrix.node-version }}
-        run: echo ${{ matrix.node-version }} && echo "matrix.node-version is truthy"
-      - if: ${{ !matrix.node-version }}
-        run: echo ${{ matrix.node-version }} && echo "matrix.node-version is falsy"
-      - run: echo ${{ needs.detect-node-version-matrix.outputs.json }}
-
-      - id: get-ver
-        run: |
-          if [[ ! -f .tool-versions ]]; then
-            echo "::set-output name=node::$(cat .node-version || echo 16)"
-          fi
-      - run: echo ${{ steps.get-ver.outputs.node }}
