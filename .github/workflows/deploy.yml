@@ -83,15 +83,16 @@ jobs:
       - id: get-ver
         # We prefer actions/setup-node to asdf due to performance
         run: |
+          if [[ -f .tool-versions ]]; then echo "::set-output name=exist-tool-versions::1"; fi
           if [[ ! -f .tool-versions ]] || [[ "$(cat .tool-versions)" != *"node"* ]]; then
             echo "::set-output name=node::$(cat .node-version || echo 16)"
           fi
+      - if: ${{ steps.get-ver.outputs.exist-tool-versions }}
+        uses: willbooster/asdf-actions/install@main
       - if: ${{ steps.get-ver.outputs.node }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.get-ver.outputs.node }}
-      - if: ${{ !steps.detect-node-version.outputs.version }}
-        uses: willbooster/asdf-actions/install@main
       - if: ${{ inputs.require_gcloud }}
         run: |
           if [[ ! -f .tool-versions ]] || [[ "$(cat .tool-versions)" != *"python"* ]]; then
