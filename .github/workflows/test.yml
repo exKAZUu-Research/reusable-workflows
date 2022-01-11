@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v2
       - id: check-node
         run: |
-          if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! node --version ]]; then
+          if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! $(node --version) ]]; then
             echo "::set-output name=require-install::1"
           fi
       - if: ${{ steps.check-node.outputs.require-install }}
