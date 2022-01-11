@@ -55,7 +55,12 @@ jobs:
             ${{ runner.os }}-yarn-berry-
 
       - run: yarn install
-      - run: yarn semantic-release
+      - run: |
+          if [[ "$(cat package.json)" == *'"release":'* ]]; then
+            yarn release
+          else
+            yarn semantic-release
+          fi
         # Existing GITHUB_TOKEN cannot trigger release (published) event
         # We need to pass a personal token (e.g. secrets.GH_BOT_PAT) to secrets.GH_TOKEN
         # c.f. https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#triggering-new-workflows-using-a-personal-access-token
