@@ -38,12 +38,9 @@ jobs:
         # We prefer actions/setup-node to asdf due to performance
         run: |
           NODE_VERSIONS=""
-          if [[ ! -f .tool-versions ]] || [[ "$(cat .tool-versions)" != *"node"* ]]; then
+          if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! -f .node-version ]]; then
             CONSTRAINT=$(node -e "console.log(((require('./package.json') || {}).engines || {}).node)")
             NODE_VERSIONS=$(npx -y semver -r "$CONSTRAINT" 12.0.0 14.0.0 16.0.0 17.0.0 | xargs | sed 's/ /","/g' | sed 's/\.0\.0//g')
-            if [[ -z "$NODE_VERSIONS" ]]; then
-              NODE_VERSIONS="$(cat .node-version || echo 16)"
-            fi
           fi
           echo "::set-output name=json::[\"$NODE_VERSIONS\"]"
   test:
@@ -62,13 +59,18 @@ jobs:
         run: echo "${{ secrets.DOT_ENV }}" > ${{ inputs.dot_env_path }}
 
       - id: get-ver
-        run: if [[ -f .tool-versions ]]; then echo "::set-output name=exist-tool-versions::1"; fi
+        run: |
+          if [[ -f .tool-versions ]]; then
+            echo "::set-output name=exist-tool-versions::1";
+          else
+            echo "::set-output name=node::$(cat .node-version || echo 16)";
+          fi
       - if: ${{ steps.get-ver.outputs.exist-tool-versions }}
         uses: willbooster/asdf-actions/install@main
-      - if: ${{ matrix.node-version }}
+      - if: ${{ ! steps.get-ver.outputs.exist-tool-versions }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node-version || steps.get-ver.outputs.node }}
       - name: Show environment information
         id: env-info
         # https://stackoverflow.com/a/677212
