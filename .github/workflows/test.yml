@@ -34,6 +34,13 @@ jobs:
       json: ${{ steps.detect-node-version-matrix.outputs.json }}
     steps:
       - uses: actions/checkout@v2
+      - id: check-node
+        run: |
+          if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! node --version ]]; then
+            echo "::set-output name=require-install::1"
+          fi
+      - if: ${{ steps.check-node.outputs.require-install }}
+        uses: actions/setup-node@v2
       - id: detect-node-version-matrix
         # We must use actions/setup-node if no Node.js description exists in .tool-versions
         run: |
