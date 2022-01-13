@@ -6,7 +6,7 @@ on:
       non_self_hosted:
         required: false
         type: boolean
-      public_sync_params:
+      sync_params_without_dest:
         required: false
         type: string
     secrets:
@@ -34,5 +34,5 @@ jobs:
           git config --global user.name "WillBooster Inc."
       - run: |
           npx -y one-way-git-sync \
-            ${{ public_sync_params }} \
+            ${{ inputs.sync_params_without_dest }} \
             -d ${{ secrets.DEST_GIT_URL }}
