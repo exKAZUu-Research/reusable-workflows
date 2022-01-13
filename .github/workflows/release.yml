@@ -29,7 +29,21 @@ jobs:
       - if: ${{ inputs.dot_env_path }}
         run: echo "${{ secrets.DOT_ENV }}" > ${{ inputs.dot_env_path }}
 
-      - uses: willbooster/asdf-actions/install@main
+      - id: get-ver
+        # We must use actions/setup-node if no Node.js description exists in .tool-versions
+        run: |
+          if [[ -f .tool-versions ]]; then
+            echo "::set-output name=exist-tool-versions::1";
+          fi
+          if [[ "$(cat .tool-versions)" != *"node"* ]]; then
+            echo "::set-output name=node::$(cat .node-version || echo 16)";
+          fi
+      - if: ${{ steps.get-ver.outputs.exist-tool-versions }}
+        uses: willbooster/asdf-actions/install@main
+      - if: ${{ steps.get-ver.outputs.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ steps.get-ver.outputs.node }}
       - name: Show environment information
         id: env-info
         # https://stackoverflow.com/a/677212
