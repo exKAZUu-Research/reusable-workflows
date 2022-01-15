@@ -24,7 +24,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # We prefer actions/setup-node to willbooster/asdf-actions/install because asdf is slow on GitHub runners
+      # We prefer actions/setup-node to asdf because asdf is slow on GitHub runners
       - uses: actions/setup-node@v2
         with:
           node-version: 16
