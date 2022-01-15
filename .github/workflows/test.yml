@@ -83,7 +83,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version || steps.get-ver.outputs.node }}
       - if: ${{ steps.get-ver.outputs.node }}
-        run: asdf global nodejs system || true
+        run: |
+          asdf global nodejs system || true
+          node --version || true
+          asdf current || true
+          echo $PATH
       - name: Show environment information
         id: env-info
         # https://stackoverflow.com/a/677212
