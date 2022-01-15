@@ -19,10 +19,12 @@ jobs:
     if: ${{ github.repository_owner == 'WillBooster' }}
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     steps:
-      # one-way-git-sync requires full history
+      # Because one-way-git-sync requires full history
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
+      # We prefer actions/setup-node to willbooster/asdf-actions/install because asdf is slow on GitHub runners
       - uses: actions/setup-node@v2
         with:
           node-version: 16
@@ -30,6 +32,7 @@ jobs:
       - name: Show environment information
         run: |
           echo "node: $(node -v)"
+
       - run: |
           git config --global user.email "bot@willbooster.com"
           git config --global user.name "WillBooster Inc."
