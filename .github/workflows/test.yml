@@ -43,7 +43,7 @@ jobs:
         uses: actions/setup-node@v2
       - if: ${{ steps.check-node.outputs.require-install }}
         run: |
-          asdf global nodejs system || true
+          asdf local nodejs system || true
           node --version || true
           asdf current || true
           echo $PATH
