@@ -96,7 +96,7 @@ jobs:
         with:
           node-version: ${{ steps.get-ver.outputs.node }}
       - if: ${{ steps.get-ver.outputs.node }}
-        run: asdf global nodejs system || true
+        run: asdf local nodejs system || true
       - if: ${{ inputs.require_gcloud }}
         run: |
           if [[ ! -f .tool-versions ]] || [[ "$(cat .tool-versions)" != *"python"* ]]; then

@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: ${{ steps.get-ver.outputs.node }}
       - if: ${{ steps.get-ver.outputs.node }}
-        run: asdf global nodejs system || true
+        run: asdf local nodejs system || true
       - name: Show environment information
         id: env-info
         # https://stackoverflow.com/a/677212
