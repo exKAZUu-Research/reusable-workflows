@@ -28,7 +28,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - run: asdf local nodejs system || true
+      - run: |
+          asdf local nodejs system || true
+          asdf local yarn system || true
       - name: Show environment information
         run: |
           echo "node: $(node -v)"
