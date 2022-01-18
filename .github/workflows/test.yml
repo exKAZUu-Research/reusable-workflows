@@ -6,6 +6,9 @@ on:
       dot_env_path:
         required: false
         type: string
+      environment:
+        required: false
+        type: string
       non_self_hosted:
         required: false
         type: boolean
@@ -30,6 +33,9 @@ jobs:
     needs: pre
     if: ${{ needs.pre.outputs.should_skip != 'true' }}
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    env:
+      # arguments
+      ENVIRONMENT: ${{ inputs.environment }}
     outputs:
       json: ${{ steps.detect-node-version-matrix.outputs.json }}
     steps:
