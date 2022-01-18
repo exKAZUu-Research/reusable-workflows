@@ -98,10 +98,11 @@ jobs:
           node-version: ${{ steps.get-ver.outputs.node }}
       - if: ${{ steps.get-ver.outputs.node }}
         run: |
-          asdf plugin add nodejs; asdf plugin add yarn;
-          asdf local nodejs system; asdf local yarn system;
+          asdf plugin add nodejs || true
+          asdf plugin add yarn || true
+          asdf local nodejs system && asdf local yarn system
           if [[ ! $(yarn --version) ]]; then
-            asdf install yarn 1.22.17; asdf local yarn 1.22.17;
+            asdf install yarn 1.22.17 && asdf local yarn 1.22.17
           fi
       - if: ${{ inputs.require_gcloud }}
         run: |
