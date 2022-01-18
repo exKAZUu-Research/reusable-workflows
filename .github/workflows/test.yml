@@ -143,7 +143,12 @@ jobs:
             ${{ runner.os }}-poetry-
 
       - run: yarn install
-      - run: if [[ "$(cat package.json)" == *'"setup":'* ]]; then yarn setup; fi
+      - run: |
+          if [[ "$(cat package.json)" == *'"setup-ci":'* ]]; then
+            yarn setup-ci
+          elif [[ "$(cat package.json)" == *'"setup":'* ]]; then
+            yarn setup
+          fi
       - run: if [[ "$(cat package.json)" == *'"typecheck":'* ]]; then yarn typecheck; fi
       - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn lint; fi
       - run: if [[ "$(cat package.json)" == *'"test":'* ]]; then yarn test; fi
