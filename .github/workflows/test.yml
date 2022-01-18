@@ -51,11 +51,7 @@ jobs:
       - if: ${{ steps.check-node.outputs.require-install }}
         run: |
           asdf plugin add nodejs || true
-          asdf plugin add yarn || true
-          asdf local nodejs system && asdf local yarn system
-          if [[ ! $(yarn --version) ]]; then
-            asdf install yarn 1.22.17 && asdf local yarn 1.22.17
-          fi
+          asdf local nodejs system
       - id: detect-node-version-matrix
         # We must use actions/setup-node if no Node.js description exists in .tool-versions
         run: |
