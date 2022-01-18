@@ -3,6 +3,9 @@ name: Test
 on:
   workflow_call:
     inputs:
+      artifact_path:
+        required: false
+        type: string
       dot_env_path:
         required: false
         type: string
@@ -145,3 +148,8 @@ jobs:
       - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn lint; fi
       - run: if [[ "$(cat package.json)" == *'"test":'* ]]; then yarn test; fi
       - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn build; fi
+      - if: ${{ inputs.artifact_path }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-artifact
+          path: ${{ inputs.artifact_path }}
