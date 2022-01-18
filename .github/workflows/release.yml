@@ -47,8 +47,11 @@ jobs:
           node-version: ${{ steps.get-ver.outputs.node }}
       - if: ${{ steps.get-ver.outputs.node }}
         run: |
-          asdf local nodejs system || true
-          asdf local yarn system || true
+          asdf plugin add nodejs; asdf plugin add yarn;
+          asdf local nodejs system; asdf local yarn system;
+          if [[ ! $(yarn --version) ]]; then
+            asdf install yarn 1.22.17; asdf local yarn 1.22.17;
+          fi
       - name: Show environment information
         id: env-info
         # https://stackoverflow.com/a/677212
