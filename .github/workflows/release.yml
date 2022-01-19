@@ -67,12 +67,16 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ steps.env-info.outputs.yarn-dir }}
+          # Don't use **/yarn.lock because it scans yarn.lock in node_modules
+          # c.f. https://github.com/AllanChain/blog/issues/98
           key: ${{ runner.os }}-yarn-v1-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-v1-
       - uses: actions/cache@v2
         with:
           path: .yarn
+          # Don't use **/yarn.lock because it scans yarn.lock in node_modules
+          # c.f. https://github.com/AllanChain/blog/issues/98
           key: ${{ runner.os }}-yarn-berry-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
