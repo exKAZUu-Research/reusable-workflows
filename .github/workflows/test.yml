@@ -18,7 +18,10 @@ on:
     secrets:
       DOT_ENV:
         required: false
-
+      GH_TOKEN:
+        required: false
+      NPM_TOKEN:
+        required: false
 jobs:
   pre:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
@@ -159,6 +162,10 @@ jobs:
       - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn lint; fi
       - run: if [[ "$(cat package.json)" == *'"test":'* ]]; then yarn test; fi
       - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn build; fi
+      - run: if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then yarn semantic-release --dry; fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - if: ${{ inputs.artifact_path }}
         uses: actions/upload-artifact@v2
         with:
