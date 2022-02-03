@@ -162,6 +162,14 @@ jobs:
       - run: if [[ "$(cat package.json)" == *'"lint":'* ]]; then yarn lint; fi
       - run: if [[ "$(cat package.json)" == *'"test":'* ]]; then yarn test; fi
       - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn build; fi
+      - run: |
+          if [[ "$(cat package.json)" == *'"lint-staged":'* ]]; then
+            for file in $(ls package.json packages/*/package.json); do
+              sed -e -i 's/"name":/"name" :/' $file
+              git add -A
+            done
+            yarn lint-staged
+          fi
       - run: if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then yarn semantic-release --dry; fi
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
