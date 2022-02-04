@@ -170,7 +170,8 @@ jobs:
             done
             yarn lint-staged
           fi
-      - run: if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then yarn semantic-release --dry; fi
+      - if: ${{ env.GITHUB_TOKEN != '' }}
+        run: if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then yarn semantic-release --dry; fi
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
