@@ -1,7 +1,6 @@
-name: Test
+name: Willboosterify
 on:
-  schedule:
-    - cron: '0 5 * * 0'
+  workflow_call:
 jobs:
   wbfy:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
@@ -44,15 +43,6 @@ jobs:
             echo "::set-output name=yarn-dir::$(yarn cache dir)"
           fi
 
-      - if: ${{ steps.env-info.outputs.yarn-dir }}
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.env-info.outputs.yarn-dir }}
-          # Don't use **/yarn.lock because it scans yarn.lock in node_modules
-          # c.f. https://github.com/AllanChain/blog/issues/98
-          key: ${{ runner.os }}-yarn-v1-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-v1-
       - uses: actions/cache@v2
         with:
           path: .yarn
@@ -62,4 +52,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
 
-      - run: npx wbfy
+      - run: yarn dlx wbfy
