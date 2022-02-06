@@ -1,6 +1,9 @@
 name: Willboosterify
 on:
   workflow_call:
+    secrets:
+      GH_TOKEN:
+        required: true
 jobs:
   wbfy:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
@@ -52,4 +55,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
 
+      - run: yarn install
       - run: yarn dlx wbfy
+      - run: |
+          git config --global user.email "bot@willbooster.com"
+          git config --global user.name "WillBooster Inc."
+          git swtich -C wbfy
+          git add -A
+          git commit -m "chore: willboosterify this repo"
+          git push -f
+      - uses: repo-sync/pull-request@v2
+        with:
+          source_branch: wbfy
+          destination_branch: main
+          github_token: ${{ secrets.GH_TOKEN }}
