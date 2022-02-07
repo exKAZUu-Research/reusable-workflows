@@ -62,10 +62,8 @@ jobs:
           git config --global user.name "WillBooster Inc."
           git swtich -C wbfy
           git add -A
-          git commit -m "chore: willboosterify this repo"
+          git commit -m "chore: wbfy this repo"
           git push -f
-      - uses: repo-sync/pull-request@v2
-        with:
-          source_branch: wbfy
-          destination_branch: main
-          github_token: ${{ secrets.GH_TOKEN }}
+          curl -u "WillBooster-bot:${{ secrets.GH_TOKEN }}" -X POST \
+            -d '{"title":"chore: wbfy this repo","base":"main", "head":"wbfy"}' \
+            https://api.github.com/repos/${{ github.repository }}/pulls || true
