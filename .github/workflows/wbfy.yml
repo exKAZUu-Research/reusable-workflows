@@ -60,7 +60,7 @@ jobs:
           git checkout -B wbfy
           git add -A
           git commit -m "chore: wbfy this repo"
-          git push -f
+          git push origin wbfy -f
           curl -u "WillBooster-bot:${{ secrets.GH_TOKEN }}" -X POST \
             -d '{"title":"chore: wbfy this repo","base":"main", "head":"wbfy"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls || true
