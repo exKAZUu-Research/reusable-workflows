@@ -56,7 +56,7 @@ jobs:
             ${{ runner.os }}-yarn-berry-
 
       - run: yarn install
-      - run: yarn dlx wbfy
+      - run: yarn dlx wbfy .
       - run: |
           git config --global user.email "bot@willbooster.com"
           git config --global user.name "WillBooster Inc."
