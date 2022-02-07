@@ -52,15 +52,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-berry-
 
-      - run: yarn install
+      #      - run: yarn install
       - run: yarn dlx wbfy .
       - run: |
           git config --global user.email "bot@willbooster.com"
           git config --global user.name "WillBooster Inc."
           git checkout -B wbfy
           git add -A
-          git commit -m "chore: wbfy this repo"
-          git push origin wbfy -f
+          git commit -m "chore: wbfy this repo" --no-verify
+          git push origin wbfy -f --no-verify
           curl -u "WillBooster-bot:${{ secrets.GH_TOKEN }}" -X POST \
             -d '{"title":"chore: wbfy this repo","base":"main", "head":"wbfy"}' \
             https://api.github.com/repos/${{ github.repository }}/pulls || true
