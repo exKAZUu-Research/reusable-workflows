@@ -1,9 +1,6 @@
 name: Willboosterify
 on:
   workflow_call:
-    secrets:
-      GH_TOKEN:
-        required: true
 jobs:
   wbfy:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
@@ -60,7 +57,7 @@ jobs:
       - run: |
           git config --global user.email "bot@willbooster.com"
           git config --global user.name "WillBooster Inc."
-          git swtich -C wbfy
+          git checkout -B wbfy
           git add -A
           git commit -m "chore: wbfy this repo"
           git push -f
