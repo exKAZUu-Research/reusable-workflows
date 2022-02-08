@@ -2,37 +2,13 @@ name: Debug
 
 on:
   workflow_dispatch:
-#  pull_request:
-#    branches:
-#      - 'main'
-#      - '!renovate/**'
 
 jobs:
-  test:
-    uses: WillBooster/reusable-workflows/.github/workflows/test.yml@node-version
-    with:
-      non_self_hosted: true
   debug:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Show environment information
-        id: env-info
-        run: |
-          echo "node: $(node -v)"
-          echo "yarn: $(yarn -v)"
-          if command -v python &> /dev/null; then echo "python: $(python --version)"; fi
-          if command -v poetry &> /dev/null; then echo "poetry: $(poetry --version)"; fi
-          if command -v gcloud &> /dev/null; then echo "gcloud: $(gcloud -v 2>&1 | head -n 1)"; fi
-          if [[ "$(yarn -v)" == "1."* ]]; then
-            echo "::set-output name=yarn-dir::$(yarn cache dir)"
-          fi
-          echo "::set-output name=git-revision::$(git describe --always --tags)"
-      - name: Set environment variables
-        run: |
-          echo "PATH=$HOME/.fly/bin:$PATH" >> $GITHUB_ENV
-          echo "VERSION=${{ steps.env-info.outputs.git-revision }}" >> $GITHUB_ENV
-      - name: Verify environment variables
-        run: |
-          echo ${PATH}
-          echo ${VERSION}
+      - run: |
+          curl -H "Authorization: token ${{ secrets.PUBLIC_GH_BOT_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/WillBooster/wbfy/pulls \
+            -X POST -d '{"head":"wbfy","base":"main","title":"chore: wbfy this repo"}' || true
