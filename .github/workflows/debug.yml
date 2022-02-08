@@ -8,7 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -H "Authorization: token ${{ secrets.PUBLIC_GH_BOT_PAT }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/WillBooster/wbfy/pulls \
-            -X POST -d '{"head":"wbfy","base":"main","title":"chore: wbfy this repo"}' || true
+          git config --global user.email "bot@willbooster.com"
+          git config --global user.name "WillBooster Inc."
+          git checkout -B wbfy
+          date > a
+          git add -A
+          git commit -m "chore: wbfy this repo" --no-verify
+          git push https://WillBooster-bot:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:wbfy -f --no-verify
