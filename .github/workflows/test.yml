@@ -57,7 +57,7 @@ jobs:
       - if: ${{ steps.check-node.outputs.require-install }}
         run: |
           asdf plugin add nodejs || true
-          asdf local nodejs system
+          asdf local nodejs system || true
       - id: detect-node-version-matrix
         # We must use actions/setup-node if no Node.js description exists in .tool-versions
         run: |
