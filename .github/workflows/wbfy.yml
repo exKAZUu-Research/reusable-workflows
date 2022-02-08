@@ -13,6 +13,9 @@ jobs:
     runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
     steps:
       - uses: actions/checkout@v2
+        # To trigger other workflows when running 'git push'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
       - if: ${{ inputs.dot_env_path }}
         run: echo "${{ secrets.DOT_ENV }}" > ${{ inputs.dot_env_path }}
 
@@ -52,7 +55,7 @@ jobs:
           git checkout -B wbfy
           git add -A
           git commit -m "chore: wbfy this repo" --no-verify
-          git push https://WillBooster-bot:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git wbfy -f --no-verify
+          git push origin wbfy -f --no-verify
           curl -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/pulls \
