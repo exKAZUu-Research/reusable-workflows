@@ -44,6 +44,8 @@ on:
         required: false
       GCP_SA_KEY_JSON:
         required: false
+      GH_TOKEN:
+        required: false
 
 jobs:
   pre:
@@ -165,6 +167,8 @@ jobs:
       - run: yarn install
 
       - run: if [[ "$(cat package.json)" == *'"deploy-setup":'* ]]; then yarn deploy-setup; fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
       - run: yarn ${{ inputs.deploy_command || 'deploy' }}
 
       - if: ${{ inputs.notify_discord && inputs.environment == 'staging' }}
