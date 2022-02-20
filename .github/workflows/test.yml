@@ -168,7 +168,7 @@ jobs:
               sed -i -e 's/"name":/"name" :/' $file
               git add -A
             done
-            yarn lint-staged
+            yarn lint-staged --allow-empty
           fi
       - if: ${{ env.GITHUB_TOKEN != '' }}
         run: if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then yarn semantic-release --dry; fi
