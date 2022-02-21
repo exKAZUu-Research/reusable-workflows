@@ -12,3 +12,4 @@ jobs:
           token: ${{ secrets.PUBLIC_GH_BOT_PAT }}
       - run: |
           echo "${{ github.event.repository.private }}"
+          echo "${{ fromJSON('["self-hosted", "large", github.event.repository.private]') }}"
