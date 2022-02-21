@@ -178,7 +178,14 @@ jobs:
             yarn lint-staged --allow-empty
           fi
       - if: ${{ env.GITHUB_TOKEN != '' }}
-        run: if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then yarn semantic-release --dry; fi
+      - run: |
+          if [[ "$(cat package.json)" == *'"semantic-release":'* ]]; then
+            if [[ "$(cat package.json)" == *'"release-test":'* ]]; then
+              yarn release-test
+            else
+              yarn semantic-release --dry-run
+            fi
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
