@@ -2,7 +2,10 @@ name: Willboosterify
 on:
   workflow_call:
     inputs:
-      non_self_hosted:
+      cpu_type:
+        required: false
+        type: string
+      self_hosted:
         required: false
         type: boolean
     secrets:
@@ -10,7 +13,7 @@ on:
         required: true
 jobs:
   wbfy:
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    runs-on: ${{ (!github.event.repository.private && !self_hosted && 'ubuntu-latest') || (cpu_type == 'X64' && fromJSON('["self-hosted", "large", "X64"]')) || (cpu_type == 'ARM64' && fromJSON('["self-hosted", "large", "ARM64"]')) || fromJSON('["self-hosted", "large"]') }}
     steps:
       - uses: actions/checkout@v2
         # To trigger other workflows when running 'git push'

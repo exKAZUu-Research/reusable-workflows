@@ -3,6 +3,9 @@ name: Deploy app
 on:
   workflow_call:
     inputs:
+      cpu_type:
+        required: false
+        type: string
       deploy_command:
         required: false
         type: string
@@ -15,9 +18,6 @@ on:
       ignore_renovate:
         required: false
         type: boolean
-      non_self_hosted:
-        required: false
-        type: boolean
       notify_discord:
         required: false
         type: boolean
@@ -25,6 +25,9 @@ on:
         required: false
         type: boolean
       require_gcloud:
+        required: false
+        type: boolean
+      self_hosted:
         required: false
         type: boolean
       server_url:
@@ -50,7 +53,7 @@ on:
 jobs:
   pre:
     if: ${{ !inputs.ignore_renovate || (github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]') }}
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    runs-on: ${{ (!github.event.repository.private && !self_hosted && 'ubuntu-latest') || (cpu_type == 'X64' && fromJSON('["self-hosted", "large", "X64"]')) || (cpu_type == 'ARM64' && fromJSON('["self-hosted", "large", "ARM64"]')) || fromJSON('["self-hosted", "large"]') }}
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:

@@ -3,7 +3,10 @@ name: Sync
 on:
   workflow_call:
     inputs:
-      non_self_hosted:
+      cpu_type:
+        required: false
+        type: string
+      self_hosted:
         required: false
         type: boolean
       sync_params_without_dest:
@@ -17,7 +20,7 @@ jobs:
   sync:
     # Make this workflow not work on other organizations for safety
     if: ${{ github.repository_owner == 'WillBooster' }}
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    runs-on: ${{ (!github.event.repository.private && !self_hosted && 'ubuntu-latest') || (cpu_type == 'X64' && fromJSON('["self-hosted", "large", "X64"]')) || (cpu_type == 'ARM64' && fromJSON('["self-hosted", "large", "ARM64"]')) || fromJSON('["self-hosted", "large"]') }}
     steps:
       # Because one-way-git-sync requires full history
       - uses: actions/checkout@v2

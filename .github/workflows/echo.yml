@@ -3,7 +3,10 @@ name: Show a given text
 on:
   workflow_call:
     inputs:
-      non_self_hosted:
+      cpu_type:
+        required: false
+        type: string
+      self_hosted:
         required: false
         type: boolean
       text:
@@ -15,7 +18,7 @@ on:
 
 jobs:
   echo:
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    runs-on: ${{ (!github.event.repository.private && !self_hosted && 'ubuntu-latest') || (cpu_type == 'X64' && fromJSON('["self-hosted", "large", "X64"]')) || (cpu_type == 'ARM64' && fromJSON('["self-hosted", "large", "ARM64"]')) || fromJSON('["self-hosted", "large"]') }}
     outputs:
       text: ${{ steps.echo.outputs.text }}
     steps:

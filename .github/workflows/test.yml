@@ -6,13 +6,16 @@ on:
       artifact_path:
         required: false
         type: string
+      cpu_type:
+        required: false
+        type: string
       dot_env_path:
         required: false
         type: string
       environment:
         required: false
         type: string
-      non_self_hosted:
+      self_hosted:
         required: false
         type: boolean
     secrets:
@@ -24,7 +27,7 @@ on:
         required: false
 jobs:
   pre:
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    runs-on: ${{ (!github.event.repository.private && !self_hosted && 'ubuntu-latest') || (cpu_type == 'X64' && fromJSON('["self-hosted", "large", "X64"]')) || (cpu_type == 'ARM64' && fromJSON('["self-hosted", "large", "ARM64"]')) || fromJSON('["self-hosted", "large"]') }}
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:

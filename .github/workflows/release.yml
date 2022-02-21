@@ -3,13 +3,16 @@ name: Release
 on:
   workflow_call:
     inputs:
+      cpu_type:
+        required: false
+        type: string
       dot_env_path:
         required: false
         type: string
       ignore_renovate:
         required: false
         type: boolean
-      non_self_hosted:
+      self_hosted:
         required: false
         type: boolean
     secrets:
@@ -23,7 +26,7 @@ on:
 jobs:
   release:
     if: ${{ !inputs.ignore_renovate || (github.event.head_commit.author.username != 'renovate-bot' && github.event.head_commit.author.username != 'renovate[bot]') }}
-    runs-on: ${{ (inputs.non_self_hosted && 'ubuntu-latest') || fromJSON('["self-hosted", "large"]') }}
+    runs-on: ${{ (!github.event.repository.private && !self_hosted && 'ubuntu-latest') || (cpu_type == 'X64' && fromJSON('["self-hosted", "large", "X64"]')) || (cpu_type == 'ARM64' && fromJSON('["self-hosted", "large", "ARM64"]')) || fromJSON('["self-hosted", "large"]') }}
     steps:
       - uses: actions/checkout@v2
       - if: ${{ inputs.dot_env_path }}
