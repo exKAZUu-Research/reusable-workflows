@@ -36,6 +36,10 @@ on:
       version:
         required: false
         type: string
+      # TODO(exkazuu): remove the following inputs
+      non_self_hosted:
+        required: false
+        type: boolean
     secrets:
       DISCORD_WEBHOOK_URL:
         required: false

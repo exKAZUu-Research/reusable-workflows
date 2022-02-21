@@ -12,6 +12,10 @@ on:
       sync_params_without_dest:
         required: false
         type: string
+      # TODO(exkazuu): remove the following inputs
+      non_self_hosted:
+        required: false
+        type: boolean
     secrets:
       DEST_GIT_URL:
         required: true

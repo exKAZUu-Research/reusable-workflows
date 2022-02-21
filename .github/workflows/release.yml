@@ -15,6 +15,10 @@ on:
       self_hosted:
         required: false
         type: boolean
+      # TODO(exkazuu): remove the following inputs
+      non_self_hosted:
+        required: false
+        type: boolean
     secrets:
       DOT_ENV:
         required: false
