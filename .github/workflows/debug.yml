@@ -11,10 +11,4 @@ jobs:
         with:
           token: ${{ secrets.PUBLIC_GH_BOT_PAT }}
       - run: |
-          git config --global user.email "bot@willbooster.com"
-          git config --global user.name "WillBooster Inc."
-          git checkout -B wbfy
-          date > a
-          git add -A
-          git commit -m "chore: wbfy this repo" --no-verify
-          git push https://WillBooster-bot:${{ secrets.PUBLIC_GH_BOT_PAT }}@github.com/${{ github.repository }}.git HEAD:wbfy -f --no-verify
+          echo "${{ github.event.repository.private }}"
