@@ -116,11 +116,13 @@ jobs:
       - if: ${{ inputs.require_gcloud }}
         run: |
           if [[ ! -f .tool-versions ]] || [[ "$(cat .tool-versions)" != *"python"* ]]; then
-            asdf plugin add python; asdf install python $PYTHON_VERSION
+            asdf plugin add python || true
+            asdf install python $PYTHON_VERSION
             asdf local python $PYTHON_VERSION
           fi
           if [[ ! -f .tool-versions ]] || [[ "$(cat .tool-versions)" != *"gcloud"* ]]; then
-            asdf plugin add gcloud; asdf install gcloud $GCLOUD_VERSION
+            asdf plugin add gcloud || true
+            asdf install gcloud $GCLOUD_VERSION
             asdf local gcloud $GCLOUD_VERSION
           fi
       - name: Show environment information
