@@ -47,6 +47,6 @@ jobs:
           git config --global user.email "bot@willbooster.com"
           git config --global user.name "WillBooster Inc."
       - run: |
-          npx one-way-git-sync \
+          npx -y --package=one-way-git-sync@latest one-way-git-sync \
             ${{ inputs.sync_params_without_dest }} \
             -d ${{ secrets.DEST_GIT_URL }}
