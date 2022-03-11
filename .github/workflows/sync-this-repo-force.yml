@@ -1,4 +1,4 @@
-name: Sync
+name: Force to Sync
 on:
   workflow_dispatch:
 jobs:
