@@ -89,6 +89,7 @@ jobs:
             ${{ runner.os }}-yarn-berry-
 
       - run: yarn install
+      - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn build; fi
       - run: |
           if [[ "$(cat package.json)" == *'"release":'* ]]; then
             yarn release
