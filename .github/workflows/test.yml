@@ -57,10 +57,6 @@ jobs:
           fi
       - if: ${{ steps.check-node.outputs.require-install }}
         uses: actions/setup-node@v3
-      - if: ${{ steps.check-node.outputs.require-install }}
-        run: |
-          asdf plugin add nodejs || true
-          asdf local nodejs system || true
       - id: detect-node-version-matrix
         # We must use actions/setup-node if no Node.js description exists in .tool-versions
         run: |
