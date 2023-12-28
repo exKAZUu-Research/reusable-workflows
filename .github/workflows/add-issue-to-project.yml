@@ -1,0 +1,30 @@
+name: Add issue to github project
+
+on:
+  workflow_call:
+    inputs:
+      target_organization:
+        required: false
+        type: string
+      label:
+        required: false
+        type: string
+        default: project
+    secrets:
+      GH_PROJECT_URL:
+        required: true
+      GH_TOKEN:
+        required: false
+
+jobs:
+  add-to-project:
+    if: ${{ !inputs.target_organization || github.repository_owner == inputs.target_organization }}
+    runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
+    env:
+      FORCE_COLOR: 3
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: ${{ secrets.GH_PROJECT_URL }}
+          github-token: ${{ secrets.GH_TOKEN }}
+          labeled: ${{ inputs.label }}

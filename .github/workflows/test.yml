@@ -1,0 +1,223 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      artifact_path:
+        required: false
+        type: string
+      ci_size:
+        default: medium
+        required: false
+        type: string
+      dot_env_path:
+        default: .env
+        required: false
+        type: string
+      environment:
+        required: false
+        type: string
+      github_hosted_runner:
+        required: false
+        type: boolean
+      runs_on:
+        required: false
+        type: string
+      target_organization:
+        required: false
+        type: string
+      custom_test_command:
+        required: false
+        type: string
+    secrets:
+      DOT_ENV:
+        required: false
+      GH_TOKEN:
+        required: true
+      NPM_TOKEN:
+        required: false
+jobs:
+  pre:
+    if: ${{ !startsWith(github.head_ref, 'refs/heads/renovate/') && github.head_ref != 'refs/heads/wbfy' && (!inputs.target_organization || github.repository_owner == inputs.target_organization) }}
+    runs-on: ${{ ((!github.event.repository.private || inputs.github_hosted_runner) && 'ubuntu-latest') || (inputs.runs_on && fromJSON(inputs.runs_on)) || fromJSON('["self-hosted", "medium"]') }}
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: false
+          skip_after_successful_duplicate: true
+          paths_ignore: '["**.md", "**/docs/**"]'
+  detect-node-version-matrix:
+    needs: pre
+    if: ${{ needs.pre.outputs.should_skip != 'true' }}
+    runs-on: ${{ ((!github.event.repository.private || inputs.github_hosted_runner) && 'ubuntu-latest') || (inputs.runs_on && fromJSON(inputs.runs_on)) || fromJSON('["self-hosted", "medium"]') }}
+    outputs:
+      json: ${{ steps.detect-node-version-matrix.outputs.json }}
+    steps:
+      - uses: actions/checkout@v4
+      # We need Node.js only if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! -f .node-version ]]
+      - id: check-node
+        run: |
+          if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! -f .node-version ]] && [[ ! $(node --version) ]]; then
+            echo "require-install=1" >> $GITHUB_OUTPUT
+          fi
+      - if: ${{ steps.check-node.outputs.require-install }}
+        uses: actions/setup-node@v4
+      - id: detect-node-version-matrix
+        # We must use actions/setup-node if no Node.js description exists in .tool-versions and no .node-version exists
+        run: |
+          NODE_VERSIONS=""
+          if [[ "$(cat .tool-versions)" != *"node"* ]] && [[ ! -f .node-version ]]; then
+            CONSTRAINT=$(node -e "console.log(((require('./package.json') || {}).engines || {}).node)")
+            NODE_VERSIONS=$(npx -y semver -r "$CONSTRAINT" 14.999.999 16.999.999 18.999.999 20.999.999 | xargs | sed 's/ /","/g' | sed 's/\.999\.999//g')
+          fi
+          echo "json=[\"$NODE_VERSIONS\"]" >> $GITHUB_OUTPUT
+  test:
+    needs: detect-node-version-matrix
+    runs-on: ${{ ((!github.event.repository.private || inputs.github_hosted_runner) && 'ubuntu-latest') || (inputs.runs_on && fromJSON(inputs.runs_on)) || fromJSON(format('["self-hosted", "{0}"]', inputs.ci_size)) }}
+    env:
+      FORCE_COLOR: 3
+      # arguments
+      HAS_DOT_ENV: ${{ !!secrets.DOT_ENV }}
+      HAS_TEST_COMMAND: ${{ !!inputs.custom_test_command }}
+      WB_ENV: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        # c.f. https://github.community/t/reusable-workflow-with-strategy-matrix/205676
+        node-version: ${{ fromJson(needs.detect-node-version-matrix.outputs.json) }}
+    steps:
+      - uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: true
+      - uses: actions/checkout@v4
+        # To trigger other workflows when running 'git push'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - if: ${{ env.HAS_DOT_ENV == 'true' }}
+        run: echo '${{ secrets.DOT_ENV }}' > ${{ inputs.dot_env_path }}
+
+      - name: Check version files
+        id: check-ver
+        run: |
+          if [[ -f .tool-versions || -f .node-version || -f .python-version ]]; then
+            echo "exist-any-version=1" >> $GITHUB_OUTPUT
+          fi
+          if [[ -f .node-version || "$(cat .tool-versions)" == *'nodejs'* ]]; then
+            echo "exist-nodejs-version=1" >> $GITHUB_OUTPUT
+          fi
+      - if: ${{ !steps.check-ver.outputs.exist-nodejs-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version || 20 }}
+      - if: ${{ steps.check-ver.outputs.exist-any-version }}
+        uses: willbooster/asdf-actions/install@main
+      - name: Show environment information
+        id: env-info
+        # https://stackoverflow.com/a/677212
+        run: |
+          echo "WB_ENV: $WB_ENV"
+          echo "node: $(node -v)"
+          echo "npm: $(npm -v)"
+          YARN=$(yarn -v); echo "yarn: $YARN"
+          if [[ "$YARN" == "1."* ]]; then
+            echo "yarn-dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          fi
+
+          if PYTHON=$(python --version 2> /dev/null); then echo "python: $PYTHON"; fi
+          if POETRY=$(poetry --version 2> /dev/null); then
+            echo "poetry: $POETRY"
+            poetry config virtualenvs.in-project true
+            poetry config virtualenvs.prefer-active-python true
+          fi
+
+      - if: ${{ steps.env-info.outputs.yarn-dir }}
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.env-info.outputs.yarn-dir }}
+          # Don't use **/yarn.lock because it scans yarn.lock in node_modules
+          # c.f. https://github.com/AllanChain/blog/issues/98
+          key: ${{ runner.os }}-yarn-v1-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-v1-
+
+      - run: yarn install || true # To ignore postinstall errors
+      - run: if [[ "$(cat package.json)" == *'"common/ci-setup":'* ]]; then yarn run common/ci-setup; fi
+      - run: if [[ "$(cat package.json)" == *'"test/ci-setup":'* ]]; then yarn run test/ci-setup; fi
+      - run: if [[ "$(cat package.json)" == *'"typecheck":'* ]]; then yarn typecheck; fi
+      - name: Lint & Build
+        run: |
+          GIT_STATUS=$(git status)
+          if [[ "$(cat package.json)" == *'"lint-fix":'* ]]; then
+            yarn lint-fix
+          elif [[ "$(cat package.json)" == *'"lint":'* ]]; then
+            yarn lint
+          fi
+          if [[ "$(cat package.json)" == *'"build/ci":'* ]]; then
+            yarn build/ci
+          elif [[ "$(cat package.json)" == *'"build":'* ]]; then
+            yarn build
+          fi
+          if [[ "$GIT_STATUS" != "$(git status)" ]]; then
+            echo "Found changes during lint-fix and/or build"
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              git status
+              git stash
+              git fetch origin ${{ github.head_ref }}
+              git switch ${{ github.head_ref }}
+              git stash pop
+              git config --global user.email "bot@willbooster.com"
+              git config --global user.name "WillBooster Inc."
+              git add -A
+              git commit -m "chore: apply changes by lint-fix and build" -a
+              git push origin ${{ github.head_ref }}
+            fi
+            exit 1
+          fi
+      - run: |
+          if [[ "${{ env.HAS_TEST_COMMAND }}" == "true" ]]; then
+            yarn run ${{ inputs.custom_test_command }}
+          elif [[ "$(cat package.json)" == *'"test/ci":'* ]]; then
+            yarn run test/ci
+          elif [[ "$(cat package.json)" == *'"test":'* ]]; then
+            yarn test
+          fi
+      - run: |
+          if [[ "$(cat package.json)" == *'"lint-staged":'* ]]; then
+            for file in $(ls package.json packages/*/package.json); do
+              sed -i -e 's/"name":/"name" :/' $file
+              git add -A
+            done
+            yarn lint-staged --allow-empty
+          fi
+      - if: ${{ env.GITHUB_TOKEN != '' && github.event_name == 'pull_request' }}
+        run: |
+          if [[ "$(cat package.json)" == *'"semantic-release":'* && $(node --version) > "v20" ]]; then
+            git switch -C $(jq -r ".branches[0]" .releaserc.json)
+            if [[ "$(cat package.json)" == *'"release-test":'* ]]; then
+              yarn release-test
+            else
+              yarn semantic-release --dry-run
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - if: ${{ inputs.artifact_path }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-artifact
+          path: ${{ inputs.artifact_path }}
+
+      - if: ${{ always() }}
+        name: Clean up
+        run: |
+          # pyc
+          sudo rm **/*.pyc &
+          # Docker
+          true $(docker rm -f $(docker ps -q) 2> /dev/null)
+          true $(docker system prune -a -f --filter "until=8h")
+          if [[ ! $(docker ps) ]]; then
+            (sleep 5; sudo reboot) &
+          fi

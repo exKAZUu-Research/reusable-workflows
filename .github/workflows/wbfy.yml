@@ -1,0 +1,72 @@
+name: Willboosterify
+on:
+  workflow_call:
+    inputs:
+      dot_env_path:
+        default: .env
+        required: false
+        type: string
+      environment:
+        required: false
+        type: string
+      github_hosted_runner:
+        required: false
+        type: boolean
+      target_organization:
+        required: false
+        type: string
+    secrets:
+      DOT_ENV:
+        required: false
+      GH_TOKEN:
+        required: true
+jobs:
+  wbfy:
+    if: ${{ !inputs.target_organization || github.repository_owner == inputs.target_organization }}
+    # github.event.repository.private is always true if job is scheduled
+    runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
+    env:
+      FORCE_COLOR: 3
+      # arguments
+      HAS_DOT_ENV: ${{ !!secrets.DOT_ENV }}
+      WB_ENV: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        # To trigger other workflows when running 'git push'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - if: ${{ env.HAS_DOT_ENV == 'true' }}
+        run: echo '${{ secrets.DOT_ENV }}' > ${{ inputs.dot_env_path }}
+
+      # We prefer actions/setup-node to asdf because asdf is slow on GitHub runners
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Show environment information
+        id: env-info
+        # https://stackoverflow.com/a/677212
+        run: |
+          echo "node: $(node -v)"
+          echo "npm: $(npm -v)"
+          YARN=$(yarn -v); echo "yarn: $YARN"
+          if [[ "$YARN" == "1."* ]]; then
+            echo "yarn-dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          fi
+
+      - run: yarn dlx wbfy --version && yarn dlx wbfy .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - run: if [[ "$(cat package.json)" == *'"build":'* ]]; then yarn build; fi
+      - run: |
+          git config --global user.email "bot@willbooster.com"
+          git config --global user.name "WillBooster Inc."
+          git checkout -B wbfy
+          git add -A
+          if git commit -m "chore: willboosterify this repo"; then
+            git push origin wbfy -f
+          fi
+        env:
+          HUSKY: 0
+      - if: ${{ always() }}
+        name: Delete credential files
+        run: rm -f ${{ inputs.dot_env_path }}

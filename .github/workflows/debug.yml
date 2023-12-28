@@ -1,0 +1,15 @@
+name: Debug
+
+on:
+  workflow_call:
+
+jobs:
+  debug:
+    runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
+    env:
+      FORCE_COLOR: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pwd
+          ls -al

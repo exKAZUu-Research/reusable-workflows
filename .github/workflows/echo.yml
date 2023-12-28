@@ -1,0 +1,25 @@
+name: Show a given text
+
+on:
+  workflow_call:
+    inputs:
+      text:
+        required: true
+        type: string
+    outputs:
+      text:
+        value: ${{ jobs.echo.outputs.text }}
+
+jobs:
+  echo:
+    runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
+    env:
+      FORCE_COLOR: 3
+    outputs:
+      text: ${{ steps.echo.outputs.text }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: willbooster/asdf-actions/install@main
+      - id: echo
+        run: |
+          echo "text=${{ inputs.text }}" >> $GITHUB_OUTPUT
