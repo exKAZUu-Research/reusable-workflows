@@ -1,14 +1,16 @@
 name: Add close comment
-
 on:
+  pull_request:
+    types:
+      - opened
   workflow_call:
     inputs:
       target_organization:
         required: false
         type: string
-
 jobs:
   close-comment:
+    uses: WillBooster/reusable-workflows/.github/workflows/close-comment.yml@main
     if: ${{ !inputs.target_organization || github.repository_owner == inputs.target_organization }}
     runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
     env:
