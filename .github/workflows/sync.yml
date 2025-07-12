@@ -1,4 +1,5 @@
 name: Sync
+
 on:
   workflow_call:
     inputs:
@@ -12,17 +13,20 @@ on:
     secrets:
       DEST_GIT_URL:
         required: true
+
 jobs:
   sync:
-    uses: WillBooster/reusable-workflows/.github/workflows/sync.yml@main
+    # Make this workflow not work on other organizations for safety
     if: ${{ !inputs.target_organization || github.repository_owner == inputs.target_organization }}
     runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
     env:
       FORCE_COLOR: 3
     steps:
+      # Because one-way-git-sync requires full history
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -30,6 +34,7 @@ jobs:
         run: |
           echo "bun: $(bun -v)"
           echo "one-way-git-sync: $(bunx --bun one-way-git-sync --version)"
+
       - run: |
           git config --global user.email "bot@willbooster.com"
           git config --global user.name "WillBooster Inc."

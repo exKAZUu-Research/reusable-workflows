@@ -1,6 +1,5 @@
 name: Willboosterify
 on:
-  workflow_dispatch:
   workflow_call:
     inputs:
       dot_env_path:
@@ -21,24 +20,25 @@ on:
         required: false
       GH_TOKEN:
         required: true
-  schedule:
-    - cron: 42 11 * * *
 jobs:
   wbfy:
-    uses: WillBooster/reusable-workflows/.github/workflows/wbfy.yml@main
     if: ${{ !inputs.target_organization || github.repository_owner == inputs.target_organization }}
+    # github.event.repository.private is always true if job is scheduled
     runs-on: ${{ (!github.event.repository.private && 'ubuntu-latest') || fromJSON('["self-hosted", "medium"]') }}
     env:
       FORCE_COLOR: 3
-      NODE_OPTIONS: '--max-old-space-size=4096'
+      NODE_OPTIONS: --max-old-space-size=4096
+      # arguments
       HAS_DOT_ENV: ${{ !!secrets.DOT_ENV }}
       WB_ENV: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
+        # To trigger other workflows when running 'git push'
         with:
           token: ${{ secrets.GH_TOKEN }}
       - if: ${{ env.HAS_DOT_ENV == 'true' }}
         run: echo '${{ secrets.DOT_ENV }}' > ${{ inputs.dot_env_path }}
+
       - name: Check version files
         id: check-ver
         run: |
@@ -57,6 +57,7 @@ jobs:
         uses: willbooster/asdf-actions/install@main
       - name: Show environment information
         id: env-info
+        # https://stackoverflow.com/a/677212
         run: |
           echo "WB_ENV: $WB_ENV"
           echo "node: $(node -v)"
@@ -78,6 +79,7 @@ jobs:
             poetry config virtualenvs.in-project true
             poetry config virtualenvs.prefer-active-python true || true # for poetry v1
           fi
+
       - run: |
           if [[ "${{ steps.env-info.outputs.runner }}" == "bun" ]]; then
             bunx wbfy --version && bunx wbfy .
@@ -103,5 +105,3 @@ jobs:
       - if: ${{ always() }}
         name: Delete credential files
         run: rm -f ${{ inputs.dot_env_path }}
-    secrets:
-      GH_TOKEN: ${{ secrets.PUBLIC_GH_BOT_PAT }}
