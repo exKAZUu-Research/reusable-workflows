@@ -18,7 +18,7 @@ on:
 
 jobs:
   echo:
-    runs-on: [self-hosted]
+    runs-on: self-hosted
     env:
       FORCE_COLOR: 3
     outputs:

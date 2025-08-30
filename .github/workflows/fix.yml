@@ -14,7 +14,7 @@ concurrency:
 jobs:
   test:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && (!inputs.target_organization || github.repository_owner == inputs.target_organization) }}
-    runs-on: [self-hosted]
+    runs-on: self-hosted
     steps:
       # To trigger other workflows when running 'git push'
       - name: Checkout code with git
