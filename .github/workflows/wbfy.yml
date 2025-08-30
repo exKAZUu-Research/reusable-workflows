@@ -21,7 +21,7 @@ on:
 jobs:
   wbfy:
     if: ${{ github.event_name != 'pull_request' && (!inputs.target_organization || github.repository_owner == inputs.target_organization) }}
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     env:
       FORCE_COLOR: 3
       NODE_OPTIONS: --max-old-space-size=4096
