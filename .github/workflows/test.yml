@@ -198,7 +198,9 @@ jobs:
           if grep -q '"gen-code":' package.json; then
             ${{ steps.env-info.outputs.runner }} run gen-code
           fi
-          if grep -q '"lint-fix":' package.json; then
+          if grep -q '"cleanup":' package.json; then
+            ${{ steps.env-info.outputs.runner }} run cleanup
+          elif grep -q '"lint-fix":' package.json; then
             ${{ steps.env-info.outputs.runner }} run lint-fix
           elif grep -q '"lint":' package.json; then
             ${{ steps.env-info.outputs.runner }} run lint
