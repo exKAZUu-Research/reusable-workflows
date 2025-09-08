@@ -117,8 +117,8 @@ jobs:
           rm -rf .[^.]*
           git init --initial-branch=main
           git remote add origin git@github.com:${{ github.repository }}.git
-          git fetch --depth 1 origin ${{ github.head_ref }}
-          git checkout ${{ github.head_ref }}
+          git fetch --depth 1 origin ${{ github.head_ref || github.ref_name }}
+          git checkout -b ${{ github.head_ref || github.ref_name }} origin/${{ github.head_ref || github.ref_name }}
       - if: ${{ needs.pre.outputs.should_skip != 'true' && env.HAS_DOT_ENV == 'true' }}
         run: echo '${{ secrets.DOT_ENV }}' > ${{ inputs.dot_env_path }}
 
