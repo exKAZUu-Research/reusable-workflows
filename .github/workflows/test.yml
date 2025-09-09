@@ -115,6 +115,7 @@ jobs:
           git init --initial-branch=main
           git remote add origin git@github.com:${{ github.repository }}.git || git remote set-url origin git@github.com:${{ github.repository }}.git
           git fetch --depth 1 origin ${{ github.head_ref || github.ref_name }}
+          git branch -D ${{ github.head_ref || github.ref_name }} || true
           git checkout --force -b ${{ github.head_ref || github.ref_name }} origin/${{ github.head_ref || github.ref_name }}
           git reset --hard
       - if: ${{ needs.pre.outputs.should_skip != 'true' && env.HAS_DOT_ENV == 'true' }}
