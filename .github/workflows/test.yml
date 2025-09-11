@@ -112,7 +112,11 @@ jobs:
         uses: actions/checkout@v5
       - if: ${{ needs.pre.outputs.should_skip != 'true' && github.event.repository.private }}
         run: |
-          git init --initial-branch=main
+          if [[ ! -d .git ]]; then
+            git init --initial-branch=main
+          else
+            rm -f .git/shallow.lock
+          fi
           git remote add origin git@github.com:${{ github.repository }}.git || git remote set-url origin git@github.com:${{ github.repository }}.git
           git fetch --depth 1 origin ${{ github.head_ref || github.ref_name }}
           git checkout --force ${{ github.head_ref || github.ref_name }}
