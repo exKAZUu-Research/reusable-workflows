@@ -272,10 +272,8 @@ jobs:
           path: ${{ inputs.artifact_path }}
 
       - if: ${{ always() }}
-        name: Clean up ports, pyc files and docker
+        name: Clean up pyc files, docker and ports
         run: |
-          : # port
-          npx --yes kill-port@latest 3000 > /dev/null &
           : # pyc
           sudo rm -f **/*.pyc &
           : # Docker
@@ -284,3 +282,5 @@ jobs:
           if [[ ! $(docker ps) ]]; then
             (which docker && sleep 5 && sudo reboot) &
           fi
+          : # port
+          npx --yes kill-port@latest 3000 > /dev/null &
