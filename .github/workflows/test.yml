@@ -103,7 +103,8 @@ jobs:
         # c.f. https://github.community/t/reusable-workflow-with-strategy-matrix/205676
         node-version: ${{ fromJson(needs.detect-node-version-matrix.outputs.json || '[""]') }}
     steps:
-      - if: ${{ needs.pre.outputs.should_skip != 'true' }}
+      - if: ${{ github.event.repository.private && !inputs.github_hosted_runner }}
+        run: if [[ ! $(docker ps) ]]; then sudo reboot; fi
         uses: fkirc/skip-duplicate-actions@master
         with:
           cancel_others: true
